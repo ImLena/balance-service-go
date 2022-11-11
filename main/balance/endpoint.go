@@ -11,6 +11,7 @@ type Endpoints struct {
 	GetBalance    endpoint.Endpoint
 	Receipt       endpoint.Endpoint
 	Reserve       endpoint.Endpoint
+	Report        endpoint.Endpoint
 }
 
 func MakeEndpoints(s Service) Endpoints {
@@ -19,6 +20,7 @@ func MakeEndpoints(s Service) Endpoints {
 		GetBalance:    makeGetBalanceEndpoint(s),
 		Receipt:       makeReceiptEndpoint(s),
 		Reserve:       makeReserveEndpoint(s),
+		Report:        makeReportEndpoint(s),
 	}
 }
 
@@ -33,7 +35,7 @@ func makeGetBalanceEndpoint(s Service) endpoint.Endpoint {
 func makeReserveEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ReserveRequest)
-		err := s.Reserve(ctx, req.UserID, req.ServiceID, req.OrderID, float32(req.Price))
+		err := s.Reserve(ctx, req.UserID, req.ServiceID, req.OrderID, float32(req.Price), req.Comment)
 		resp := ""
 		if err == nil {
 			resp = "Reservation successful"
@@ -45,7 +47,7 @@ func makeReserveEndpoint(s Service) endpoint.Endpoint {
 func makeReceiptEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ReceiptRequest)
-		err := s.Receipt(ctx, req.UserID, req.Income)
+		err := s.Receipt(ctx, req.UserID, req.Income, req.Comment)
 		resp := ""
 		if err == nil {
 			resp = "Successful"
@@ -63,5 +65,13 @@ func makeAcceptPaymentEndpoint(s Service) endpoint.Endpoint {
 			resp = "Reservation verified"
 		}
 		return resp, err
+	}
+}
+
+func makeReportEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(ReportRequest)
+		csv, err := s.Report(ctx, req.Year, req.Month)
+		return csv, err
 	}
 }

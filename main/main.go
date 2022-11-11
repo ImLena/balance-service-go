@@ -20,14 +20,17 @@ import (
 
 const startsql = "create table balance(\n" +
 	"id      varchar,\n" +
-	"balance float\n);\n" +
+	"balance float,\n" +
+	"comment    varchar\n);\n" +
 	"create table transactions\n(\n " +
 	"id         varchar,\n" +
 	"service_id int,\n" +
 	"order_id   int,\n" +
 	"price      int,\n" +
 	"user_id    varchar,\n" +
-	"verified   bool\n);\n"
+	"verified   bool,\n" +
+	"comment    varchar,\n" +
+	"time TIMESTAMP);\n"
 
 func main() {
 	var httpAddr = flag.String("http", ":8080", "http listen address")
@@ -63,7 +66,7 @@ func main() {
 	{
 		repository := balance.NewRepo(database.Conn)
 
-		srv = balance.NewService(repository, logger)
+		srv = balance.NewService(repository)
 	}
 
 	errs := make(chan error)
