@@ -39,10 +39,17 @@ func (s service) AcceptPayment(ctx context.Context, userID string, serviceID int
 	return err
 }
 
-func (s service) Receipt(ctx context.Context, userID string, income float32, comment string) error {
-	err := s.repository.Receipt(ctx, Receipt{userID, income, comment})
+func (s service) Receipt(ctx context.Context, userID string, income float32, sourceID int32, comment string) error {
+	id, _ := uuid.NewV4()
+	receiptID := id.String()
+	err := s.repository.Receipt(ctx, Receipt{receiptID, income, sourceID, userID, comment})
 
 	return err
+}
+
+func (s service) Transactions(ctx context.Context, userID string, limit int8, offset int8, sort string) ([]string, error) {
+	data, err := s.repository.Transactions(ctx, userID, limit, offset, sort)
+	return data, err
 }
 
 func (s service) Report(ctx context.Context, year string, month string) (string, error) {

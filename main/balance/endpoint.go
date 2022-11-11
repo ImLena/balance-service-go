@@ -12,6 +12,7 @@ type Endpoints struct {
 	Receipt       endpoint.Endpoint
 	Reserve       endpoint.Endpoint
 	Report        endpoint.Endpoint
+	Transactions  endpoint.Endpoint
 }
 
 func MakeEndpoints(s Service) Endpoints {
@@ -21,6 +22,7 @@ func MakeEndpoints(s Service) Endpoints {
 		Receipt:       makeReceiptEndpoint(s),
 		Reserve:       makeReserveEndpoint(s),
 		Report:        makeReportEndpoint(s),
+		Transactions:  makeTransactionsEndpoint(s),
 	}
 }
 
@@ -47,7 +49,7 @@ func makeReserveEndpoint(s Service) endpoint.Endpoint {
 func makeReceiptEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ReceiptRequest)
-		err := s.Receipt(ctx, req.UserID, req.Income, req.Comment)
+		err := s.Receipt(ctx, req.UserID, req.Income, req.SourceID, req.Comment)
 		resp := ""
 		if err == nil {
 			resp = "Successful"
@@ -73,5 +75,13 @@ func makeReportEndpoint(s Service) endpoint.Endpoint {
 		req := request.(ReportRequest)
 		csv, err := s.Report(ctx, req.Year, req.Month)
 		return csv, err
+	}
+}
+
+func makeTransactionsEndpoint(s Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(TransactionsRequest)
+		data, err := s.Transactions(ctx, req.UserID, req.Limit, req.Offset, req.Sort)
+		return data, err
 	}
 }

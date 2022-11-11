@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -36,7 +37,7 @@ func (repo *repo) Reserve(ctx context.Context, reservation Reservation) error {
 		reservation.UserID, newBalance)
 
 	_, err = tx.Exec("INSERT INTO transactions (id, service_id, order_id, price, user_id, verified, comment, time) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-		reservation.ID, reservation.ServiceID, reservation.OrderID, reservation.Price,
+		reservation.ID, reservation.ServiceID, reservation.OrderID, -reservation.Price,
 		reservation.UserID, reservation.Verified, reservation.Comment, time.Now())
 	if err != nil {
 		tx.Rollback()
@@ -52,7 +53,7 @@ func (repo *repo) AcceptPayment(ctx context.Context, acceptation Acceptation) er
 	var id string
 	var verify bool
 	err = tx.QueryRow("SELECT id, verified FROM transactions WHERE user_id=$1 AND service_id=$2 AND order_id=$3 AND price=$4",
-		acceptation.UserID, acceptation.ServiceID, acceptation.OrderID, acceptation.Price).Scan(&id, &verify)
+		acceptation.UserID, acceptation.ServiceID, acceptation.OrderID, -acceptation.Price).Scan(&id, &verify)
 	if err != nil {
 		tx.Rollback()
 		return AcceptationNotFoundErr
@@ -73,11 +74,19 @@ func (repo *repo) AcceptPayment(ctx context.Context, acceptation Acceptation) er
 }
 
 func (repo *repo) Receipt(ctx context.Context, receipt Receipt) error {
-	_, err := repo.db.Exec("INSERT INTO balance (id, balance, comment) VALUES ($1, $2, $3)",
-		receipt.ID, receipt.Income, receipt.Comment)
+	tx, err := repo.db.Begin()
+	_, err = tx.Exec("INSERT INTO balance (id, balance, comment) VALUES ($1, $2, $3)",
+		receipt.UserID, receipt.Income, receipt.Comment)
+
+	_, err = tx.Exec("INSERT INTO transactions (id, service_id, order_id, price, user_id, verified, comment, time) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+		receipt.ID, receipt.SourceID, nil, receipt.Income,
+		receipt.UserID, true, receipt.Comment, time.Now())
+
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
+	err = tx.Commit()
 
 	return nil
 }
@@ -92,8 +101,37 @@ func (repo *repo) GetBalance(ctx context.Context, id string) (float32, error) {
 	return balance, nil
 }
 
+func (repo *repo) Transactions(ctx context.Context, id string, limit int8, offset int8, sort string) ([]string, error) {
+	rows, err := repo.db.Query("SELECT service_id, price, comment, time FROM transactions WHERE user_id=$1 ORDER BY $4 LIMIT $2 OFFSET $3",
+		id, limit, offset, sort)
+	if err != nil {
+		return nil, err
+	}
+
+	var data []string
+	for rows.Next() {
+		var serviceId int32
+		var price int32
+		var comment string
+		var t time.Time
+		err = rows.Scan(&serviceId, &price, &comment, &t)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if price > 0 {
+			data = append(data, fmt.Sprintf("Income %d from %d with comment: '%v' ", price, serviceId, comment))
+		} else {
+			data = append(data, fmt.Sprintf("Debited %d to %d with comment: '%v' ", -price, serviceId, comment))
+		}
+	}
+
+	return data, nil
+}
+
 func (repo *repo) Report(ctx context.Context, year string, month string) (map[int32]float64, error) {
-	rows, err := repo.db.Query("SELECT service_id, price FROM transactions WHERE EXTRACT(YEAR FROM time)=$1 AND EXTRACT(MONTH FROM time)=$2 AND verified=true",
+	rows, err := repo.db.Query("SELECT service_id, price FROM transactions WHERE EXTRACT(YEAR FROM time)=$1 AND EXTRACT(MONTH FROM time)=$2 AND verified=true AND price<0",
 		year, month)
 
 	if err != nil {
