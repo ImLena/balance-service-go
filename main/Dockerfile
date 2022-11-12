@@ -19,6 +19,7 @@ RUN mkdir /root/reports
 
 COPY --from=builder /app/main .
 COPY --from=builder /app/.env .
+COPY --from=builder /app/start.sql .
 
 EXPOSE 8000
 

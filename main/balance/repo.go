@@ -75,8 +75,8 @@ func (repo *repo) AcceptPayment(ctx context.Context, acceptation Acceptation) er
 
 func (repo *repo) Receipt(ctx context.Context, receipt Receipt) error {
 	tx, err := repo.db.Begin()
-	_, err = tx.Exec("INSERT INTO balance (id, balance, comment) VALUES ($1, $2, $3)",
-		receipt.UserID, receipt.Income, receipt.Comment)
+	_, err = tx.Exec("INSERT INTO balance (id, balance) VALUES ($1, $2)",
+		receipt.UserID, receipt.Income)
 
 	_, err = tx.Exec("INSERT INTO transactions (id, service_id, order_id, price, user_id, verified, comment, time) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
 		receipt.ID, receipt.SourceID, nil, receipt.Income,

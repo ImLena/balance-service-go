@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
-	_ "github.com/lib/pq"
-
 	"github.com/go-kit/kit/log"
+	_ "github.com/lib/pq"
+	"strings"
 
 	"github.com/go-kit/kit/log/level"
 
@@ -17,20 +19,6 @@ import (
 
 	"balance-service-go/balance"
 )
-
-const startsql = "create table balance(\n" +
-	"id      varchar,\n" +
-	"balance float,\n" +
-	"comment    varchar\n);\n" +
-	"create table transactions\n(\n " +
-	"id         varchar,\n" +
-	"service_id int,\n" +
-	"order_id   int,\n" +
-	"price      int,\n" +
-	"user_id    varchar,\n" +
-	"verified   bool,\n" +
-	"comment    varchar,\n" +
-	"time TIMESTAMP);\n"
 
 func main() {
 	var httpAddr = flag.String("http", ":8080", "http listen address")
@@ -60,6 +48,11 @@ func main() {
 	}
 	defer database.Conn.Close()
 
+	script := strings.Split(readFile(), ";")
+	for _, s := range script {
+		database.Conn.Exec(s)
+	}
+
 	flag.Parse()
 	ctx := context.Background()
 	var srv balance.Service
@@ -70,8 +63,6 @@ func main() {
 	}
 
 	errs := make(chan error)
-
-	database.Conn.Exec(startsql)
 
 	go func() {
 		c := make(chan os.Signal, 1)
@@ -90,22 +81,17 @@ func main() {
 	level.Error(logger).Log("exit", <-errs)
 }
 
-/*
-func readFile() (string, error) {
-	file, err := os.Open("./start.sql")
+func readFile() string {
+	file, err := os.Open("start.sql")
 	if err != nil {
 		fmt.Println(err)
-		//os.Exit(1)
 	}
-	data := make([]byte, 64)
-	var n int
-	for {
-		n, err = file.Read(data)
-		if err == io.EOF {
-			break
-		}
+
+	wr := bytes.Buffer{}
+	sc := bufio.NewScanner(file)
+	for sc.Scan() {
+		wr.WriteString(sc.Text())
 	}
-	fmt.Print("aaa" + string(data[:n]))
-	return string(data[:n]), err
+
+	return wr.String()
 }
-*/
