@@ -1,0 +1,203 @@
+openapi: 3.0.0
+servers:
+  - url: http://localhost:8080
+    description: Inferred Url
+info:
+  description: API for balance microservice
+  version: "1.0.0"
+  title: Balance microservice
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+paths:
+  /{id}/balance:
+    get:
+      summary: get user's balance
+      parameters:
+        - name: id
+          in: query
+          description: User id
+          required: true
+          style: form
+          schema:
+            type: string
+            format: string
+            example: 1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+  /receipt:
+    post:
+      summary: add money to user's balance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Receipt'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+                example: "Succesful"
+  /reserve:
+    post:
+      summary: reserve money from user's balance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reserve'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+                example: "Reservation successful"
+  /accept:
+    post:
+      summary: accept reservation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Accept'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+                example: "Reservation verified"
+  /report:
+    post:
+      summary: report withdrawals for all users by services
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Report'
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: string
+                example: "reports/2022-11.csv"
+  /{id}/transactions:
+    get:
+      summary: get user's balance
+      parameters:
+        - name: id
+          in: query
+          description: User id
+          required: true
+          style: form
+          schema:
+            type: string
+            example: 1
+        - name: limit
+          in: query
+          description: items per page
+          style: form
+          schema:
+            type: integer
+            example: 20
+        - name: offset
+          in: query
+          description: offset from 1st item
+          style: form
+          schema:
+            type: integer
+            example: 5
+        - name: sort
+          in: query
+          description: time or price
+          style: form
+          schema:
+            type: string
+            example: time
+      responses:
+        '200':
+          description: OKe
+          content:
+            text/plain; charset=utf-8:
+              schema:
+                type: array
+                example: ["2022-11-13 19:44:22: Income 20 from 10 with comment:'Happy Birthday' ",
+                          "2022-11-13 19:55:15: Debited 2 to 5 with comment: 'Coffee' "]
+components:
+  schemas:
+    Balance:
+      type: object
+      properties:
+        balance:
+          type: integer
+          example: 1000
+    Receipt:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 12345
+        income:
+          type: number
+          example: 1000
+        source_id:
+          type: integer
+          example: 98765
+        comment:
+          type: string
+          example: "Wish you all the best"
+    Reserve:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 12345
+        service_id:
+          type: integer
+          example: 98765
+        order_id:
+          type: integer
+          example: 8765543
+        price:
+          type: number
+          example: 199
+        comment:
+          type: string
+          example: "Yandex music"
+    Accept:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          example: 12345
+        service_id:
+          type: integer
+          example: 98765
+        order_id:
+          type: integer
+          example: 8765543
+        price:
+          type: number
+          example: 199
+    Report:
+      type: object
+      properties:
+        year:
+          type: string
+          example: 2022
+        month:
+          type: string
+          example: 11
