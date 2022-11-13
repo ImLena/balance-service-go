@@ -8,6 +8,7 @@
 
 Сервер будет доступен по адресу http://localhost:8000
 ## Запросы к API
+Postman коллекция: https://www.getpostman.com/collections/3f1e8fd92c9861a52ed3
 ### Метод начисления средств на баланс
 ```
 curl --location --request POST 'http://localhost:8000/receipt' \
