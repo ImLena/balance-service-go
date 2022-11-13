@@ -1,12 +1,10 @@
 package balance
 
-import "context"
-
 type Service interface {
-	AcceptPayment(ctx context.Context, userID string, serviceID int32, orderID int32, price float32) error
-	GetBalance(ctx context.Context, id string) (float32, error)
-	Receipt(ctx context.Context, userID string, income float32, sourceID int32, comment string) error
-	Transactions(ctx context.Context, userID string, limit int8, offset int8, sort string) ([]string, error)
-	Report(ctx context.Context, year string, month string) (string, error)
-	Reserve(ctx context.Context, userID string, serviceID int32, orderID int32, price float32, comment string) error
+	AcceptPayment(userID string, serviceID int32, orderID int32, price float32) error
+	GetBalance(id string) (float32, error)
+	Receipt(userID string, income float32, sourceID int32, comment string) error
+	Transactions(userID string, limit int8, offset int8, sort string) ([]string, error)
+	Report(year string, month string) (string, error)
+	Reserve(userID string, serviceID int32, orderID int32, price float32, comment string) error
 }

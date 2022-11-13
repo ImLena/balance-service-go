@@ -29,7 +29,7 @@ func MakeEndpoints(s Service) Endpoints {
 func makeGetBalanceEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(GetBalanceRequest)
-		balance, err := s.GetBalance(ctx, req.Id)
+		balance, err := s.GetBalance(req.Id)
 		return GetBalanceResponse{Balance: balance}, err
 	}
 }
@@ -37,7 +37,7 @@ func makeGetBalanceEndpoint(s Service) endpoint.Endpoint {
 func makeReserveEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ReserveRequest)
-		err := s.Reserve(ctx, req.UserID, req.ServiceID, req.OrderID, float32(req.Price), req.Comment)
+		err := s.Reserve(req.UserID, req.ServiceID, req.OrderID, float32(req.Price), req.Comment)
 		resp := ""
 		if err == nil {
 			resp = "Reservation successful"
@@ -49,7 +49,7 @@ func makeReserveEndpoint(s Service) endpoint.Endpoint {
 func makeReceiptEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ReceiptRequest)
-		err := s.Receipt(ctx, req.UserID, req.Income, req.SourceID, req.Comment)
+		err := s.Receipt(req.UserID, req.Income, req.SourceID, req.Comment)
 		resp := ""
 		if err == nil {
 			resp = "Successful"
@@ -61,7 +61,7 @@ func makeReceiptEndpoint(s Service) endpoint.Endpoint {
 func makeAcceptPaymentEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ReserveRequest)
-		err := s.AcceptPayment(ctx, req.UserID, req.ServiceID, req.OrderID, float32(req.Price))
+		err := s.AcceptPayment(req.UserID, req.ServiceID, req.OrderID, float32(req.Price))
 		resp := ""
 		if err == nil {
 			resp = "Reservation verified"
@@ -73,7 +73,7 @@ func makeAcceptPaymentEndpoint(s Service) endpoint.Endpoint {
 func makeReportEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(ReportRequest)
-		csv, err := s.Report(ctx, req.Year, req.Month)
+		csv, err := s.Report(req.Year, req.Month)
 		return csv, err
 	}
 }
@@ -81,7 +81,7 @@ func makeReportEndpoint(s Service) endpoint.Endpoint {
 func makeTransactionsEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(TransactionsRequest)
-		data, err := s.Transactions(ctx, req.UserID, req.Limit, req.Offset, req.Sort)
+		data, err := s.Transactions(req.UserID, req.Limit, req.Offset, req.Sort)
 		return data, err
 	}
 }

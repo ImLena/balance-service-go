@@ -1,7 +1,5 @@
 package balance
 
-import "context"
-
 type Receipt struct {
 	ID       string  `json:"id,omitempty"`
 	Income   float32 `json:"income"`
@@ -28,10 +26,10 @@ type Acceptation struct {
 }
 
 type Repository interface {
-	AcceptPayment(ctx context.Context, acceptation Acceptation) error
-	GetBalance(ctx context.Context, id string) (float32, error)
-	Receipt(ctx context.Context, receipt Receipt) error
-	Report(ctx context.Context, year string, month string) (map[int32]float64, error)
-	Reserve(ctx context.Context, reservation Reservation) error
-	Transactions(ctx context.Context, id string, limit int8, offset int8, sort string) ([]string, error)
+	AcceptPayment(acceptation Acceptation) error
+	GetBalance(id string) (float32, error)
+	Receipt(receipt Receipt) error
+	Report(year string, month string) (map[int32]float64, error)
+	Reserve(reservation Reservation) error
+	Transactions(id string, limit int8, offset int8, sort string) ([]string, error)
 }
